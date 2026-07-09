@@ -1,0 +1,13 @@
+# Changes here will be overwritten by Copier
+_commit: 0.6.1
+_src_path: https://github.com/nlesc/python-template.git
+copyright_holder: nicolas renaud
+email: nicolas.gm.renaud@gmail.com
+full_name: nicolas renaud
+github_organization: surf_research_agent
+keywords: agents ui
+license: Apachev2
+package_name: langchain_ui
+package_short_description: LibreChat UI for LangChain/LangGraph/DeepAgents apps
+template_profile: minimum
+version: 0.1.0
