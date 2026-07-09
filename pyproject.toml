@@ -22,7 +22,17 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = []
+dependencies = [
+    'langgraph',
+    'langchain',
+    'langchain_community',
+    'langchain_surf @ git+https://github.com/SURF-Research-Agents/langchain_surf.git',
+    'deepagents',
+    'Flask',
+    'langchain_openai',
+    'dotenv',
+    'tavily'
+]
 description = "LibreChat UI for LangChain/LangGraph/DeepAgents apps"
 keywords = ["agents ui"]
 license = {file = "LICENSE"}
@@ -46,8 +56,8 @@ publishing = [
 ]
 
 [project.urls]
-Repository = "https://github.com/surf_research_agent/langchain_ui"
-Issues = "https://github.com/surf_research_agent/langchain_ui/issues"
+Repository = "https://github.com/surf_research_agents/langchain_ui"
+Issues = "https://github.com/surf_research_agents/langchain_ui/issues"
 
 
 
