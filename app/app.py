@@ -18,7 +18,6 @@ willma_agent = create_willma_agent(api_key=api_key,
                                    tools=[internet_search])
 
 
-
 @app.route("/chat/completions", methods=["POST"])
 def chat():
     payload = request.get_json(force=True, silent=True) or {}
