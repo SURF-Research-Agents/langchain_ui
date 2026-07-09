@@ -1,53 +1,34 @@
 import os
-from typing import Literal
-
 from dotenv import load_dotenv
 from flask import Flask, Response, request
-from tavily import TavilyClient
 
-from langchain_ui.chain import AgentWillma
+
 from langchain_ui.message import OpenAIRequest
-from langchain_ui.stream import OpenAIStream
+from langchain_ui.agents.agent import create_willma_agent
+from langchain_ui.tools.tavily import internet_search
 
-load_dotenv("/Users/renau001/Documents/projects/ai/SRA/.env")
+load_dotenv('/Users/renau001/Documents/projects/ai/SRA/.env')
 
 api_key = os.getenv("AIHUB_API_KEY")
 
-tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
-app = Flask('AgentWillma')
-
-
-def internet_search(
-    query: str,
-    max_results: int = 5,
-    topic: Literal["general", "news", "finance"] = "general",
-    include_raw_content: bool = False,
-):
-    """Run a web search"""
-    return tavily_client.search(
-        query,
-        max_results=max_results,
-        include_raw_content=include_raw_content,
-        topic=topic,
-    )
+app = Flask('WillmAgent')
 
 
-openai_stream = OpenAIStream(target='llm')
-willma_agent = AgentWillma(api_key=api_key, tools=[internet_search], target='llm')
-chain = willma_agent() | openai_stream
+willma_agent = create_willma_agent(api_key=api_key,
+                                   tools=[internet_search])
+
 
 
 @app.route("/chat/completions", methods=["POST"])
 def chat():
     payload = request.get_json(force=True, silent=True) or {}
-
+    print('\nrequest:', payload)
     chat_request = OpenAIRequest(**payload)
-
+    print('\nchat_request:', chat_request)
     question = chat_request.messages[-1].content
-
-    return Response(chain.stream(question), mimetype="text/event-stream")
-
+    print('\nquestion:', question)
+    return Response(willma_agent.stream(question), mimetype="text/event-stream")
 
 if __name__ == "__main__":
     app.run(debug=True, port=8000)
