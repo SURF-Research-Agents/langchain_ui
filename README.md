@@ -1,25 +1,9 @@
-## Badges
-
-(Customize these badges with your own links, and check https://shields.io/ or https://badgen.net/ to see which other badges are available.)
-
-| fair-software.eu recommendations | |
-| :-- | :--  |
-| (1/5) code repository              | [![github repo badge](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/surf_research_agent/langchain_ui) |
-| (2/5) license                      | [![github license badge](https://img.shields.io/github/license/surf_research_agent/langchain_ui)](https://github.com/surf_research_agent/langchain_ui) |
-| (3/5) community registry           | [![RSD](https://img.shields.io/badge/rsd-langchain_ui-00a3e3.svg)](https://www.research-software.nl/software/langchain_ui) [![workflow pypi badge](https://img.shields.io/pypi/v/langchain_ui.svg?colorB=blue)](https://pypi.python.org/project/langchain_ui/) |
-| (4/5) citation                     | |
-| (5/5) checklist                    | [![workflow cii badge](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>/badge)](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>) |
-| howfairis                          | [![fair-software badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu) |
-| **Other best practices**           | &nbsp; |
-| **GitHub Actions**                 | &nbsp; |
-| Build                              | [![build](https://github.com/surf_research_agent/langchain_ui/actions/workflows/build.yml/badge.svg)](https://github.com/surf_research_agent/langchain_ui/actions/workflows/build.yml) |
-## How to use langchain_ui
-
-LibreChat UI for LangChain/LangGraph/DeepAgents apps
-
-The project setup is documented in [project_setup.md](project_setup.md). Feel free to remove this document (and/or the link to this document) if you don't need it.
+# LangChain UI 
+A simple connection between langchain deepagents app and LibreChat frontend 
 
 ## Installation
+
+### Install langchain-ui
 
 To install langchain_ui from GitHub repository, do:
 
@@ -28,6 +12,72 @@ git clone git@github.com:surf_research_agent/langchain_ui.git
 cd langchain_ui
 python -m pip install .
 ```
+
+### Install LibreChat
+
+Clone the LibreChat repo on your machine
+
+```console
+git clone https://github.com/danny-avila/librechat
+```
+
+## Using LangChainUI natively
+
+1. Start the langchain ui server
+
+```bash
+cd langchain_ui/app
+python app.pu
+```
+
+2. Update your [librechat.yaml](https://www.librechat.ai/docs/configuration/librechat_yaml) to include your server as a custom endpoint.
+
+If not already done copy `librechat.example.yaml` in `librechat.yaml` Then add the following lines in the yaml file:
+
+```yaml filename="librechat.yaml"
+endpoints:
+  custom:
+    - name: "SURF Agents" # Could be anything
+      apiKey: "super-secret" # Could be anything
+      baseURL: "http://host.docker.internal:8000/"
+      models:
+        default: ["SURF AI"] # Could be anything
+      titleConvo: true
+      titleModel: "current_model"
+      summarize: false
+      summaryModel: "current_model"
+      forcePrompt: false
+      modelDisplayLabel: "SURF Research Agent" # Could be anything
+```
+
+LibreChat will call your app using the OpenAI-style route, typically `/v1/chat/completions`, so the Flask server accepts both `/chat/completions` and `/v1/chat/completions`.
+
+3. Create and start Librechat containers.
+
+```bash
+cd Librechat
+docker compose up -d
+```
+
+4. Open UI and choose your endpoint from the dropdown menu at the top left.
+5. Start conversing with the model!
+
+
+## Using LangChainUI in Docker
+
+1. Build an image using the provided dockerfile.
+2. Reference the Docker image in the [docker-compose.override.yml](https://www.librechat.ai/docs/configuration/docker_override).
+3. Create and start Librechat containers.
+
+```bash
+cd Librechat
+docker compose up -d
+```
+
+## Resources
+
+- [OpenAI API Chat Docs](https://platform.openai.com/docs/api-reference/chat/create)
+
 
 ## Documentation
 
