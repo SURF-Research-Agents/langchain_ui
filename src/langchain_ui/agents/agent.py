@@ -1,7 +1,7 @@
 
-from typing import Iterable
+import logging
+from typing import Any, Iterable
 from uuid import uuid4
-
 from deepagents import create_deep_agent
 from langchain_core.messages import AIMessageChunk
 from langchain_core.prompts import ChatPromptTemplate
@@ -11,29 +11,32 @@ from langchain_surf import ChatWillma
 from langchain_ui.agents.agent_utils import format_data, get_chunkid, get_content
 from langchain_ui.agents.default_agent_instruction import default_instructions
 
+logger = logging.getLogger(__name__)
+
 
 def create_willma_agent(
-    api_key,
-    model="default-text-large",
-    temperature=0.1,
-    max_tokens=100000,
-    timeout=30,
-    tools=None,
-    instructions=None,
-):
-    """return a willma agent instance
+    api_key: str,
+    model: str = "default-text-large",
+    temperature: float = 0.1,
+    max_tokens: int = 1000,
+    timeout: int = 30,
+    tools: list[Any] | None = None,
+    instructions: str | None = None,
+) -> Any:
+    """Create and return a Willma agent configured for OpenAI-compatible SSE streaming.
 
     Args:
-        api_key (_type_): _description_
-        model (str, optional): _description_. Defaults to "default-text-large".
-        temperature (float, optional): _description_. Defaults to 0.1.
-        max_tokens (int, optional): _description_. Defaults to 100000.
-        timeout (int, optional): _description_. Defaults to 30.
-        tools (_type_, optional): _description_. Defaults to None.
-        instructions (_type_, optional): _description_. Defaults to None.
+        api_key: API key for authentication with the Willma service.
+        model: Model identifier to use. Defaults to "default-text-large".
+        temperature: Sampling temperature for generation. Defaults to 0.1.
+        max_tokens: Maximum number of tokens in the response. Defaults to 100000.
+        timeout: Request timeout in seconds. Defaults to 30.
+        tools: Optional list of LangChain tools to provide to the agent.
+        instructions: Optional system prompt instructions. Uses default if None.
 
     Returns:
-        _type_: _description_
+        A LangChain Runnable chain (prompt | agent | stream converter) that
+        produces OpenAI-compatible SSE byte chunks.
     """
     if instructions is None:
         instructions = default_instructions
@@ -48,31 +51,27 @@ def create_willma_agent(
         receives a well‑formed response.
         """
         for chunk in chunks:
-            # Debug output – keep it simple to avoid leaking large data.
-            print("\nstreaming chunk:", chunk)
+            logger.debug("Streaming chunk: %s", chunk)
             chunk_id = get_chunkid(chunk)
             content = get_content(chunk)
             data = format_data(chunk_id, model, str(uuid4()), content)
-            print("\ndata", data)
+            logger.debug("Data: %s", data)
             yield bytes(f"data: {data}\n\n", "utf-8")
 
-    def agent_wilma():
-        prompt = ChatPromptTemplate.from_template("Question: {input}")
+    prompt = ChatPromptTemplate.from_template("Question: {input}")
 
-        llm = ChatWillma(
-            model=model,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            timeout=timeout,
-            api_key=api_key,
-        )
+    llm = ChatWillma(
+        model=model,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        timeout=timeout,
+        api_key=api_key,
+    )
 
-        agent = create_deep_agent(
-            model=llm,
-            tools=tools,
-            system_prompt=instructions,
-        )
+    agent = create_deep_agent(
+        model=llm,
+        tools=tools,
+        system_prompt=instructions,
+    )
 
-        return prompt | agent | stream_openai_response
-
-    return agent_wilma()
+    return (prompt | agent | stream_openai_response)
