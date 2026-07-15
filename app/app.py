@@ -50,6 +50,7 @@ def chat():
         
         chat_request = OpenAIRequest(**payload)
         question = chat_request.messages[-1].content
+        
         if not question:
             raise BadRequest("Empty question")
     except (BadRequest, TypeError, KeyError) as e:

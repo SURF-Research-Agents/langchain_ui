@@ -18,7 +18,7 @@ def create_willma_agent(
     api_key: str,
     model: str = "default-text-large",
     temperature: float = 0.1,
-    max_tokens: int = 100000,
+    max_tokens: int = 1000,
     timeout: int = 30,
     tools: list[Any] | None = None,
     instructions: str | None = None,
