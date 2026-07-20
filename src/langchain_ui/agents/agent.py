@@ -22,6 +22,8 @@ def create_willma_agent(
     timeout: int = 30,
     tools: list[Any] | None = None,
     instructions: str | None = None,
+    backend: Any | None = None,
+    skills: list[str] | None = None,
 ) -> Any:
     """Create and return a Willma agent configured for OpenAI-compatible SSE streaming.
 
@@ -33,6 +35,8 @@ def create_willma_agent(
         timeout: Request timeout in seconds. Defaults to 30.
         tools: Optional list of LangChain tools to provide to the agent.
         instructions: Optional system prompt instructions. Uses default if None.
+        backend: Optional DeepAgents backend for tool execution.
+        skills: Optional list of skill identifiers to enable for the agent.
 
     Returns:
         A LangChain Runnable chain (prompt | agent | stream converter) that
@@ -72,6 +76,8 @@ def create_willma_agent(
         model=llm,
         tools=tools,
         system_prompt=instructions,
+        backend=backend,
+        skills=skills,
     )
 
     return (prompt | agent | stream_openai_response)
