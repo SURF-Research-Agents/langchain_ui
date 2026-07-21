@@ -31,7 +31,10 @@ dependencies = [
     'Flask',
     'langchain_openai',
     'dotenv',
-    'tavily'
+    'tavily',
+    'langfuse',
+    'gunicorn',
+    'gevent'
 ]
 description = "LibreChat UI for LangChain/LangGraph/DeepAgents apps"
 keywords = ["agents ui"]
