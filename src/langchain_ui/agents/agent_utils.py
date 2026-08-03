@@ -37,27 +37,90 @@ def format_data(chunk_id, model, system_fingerprint, content):
 
 
 def get_content(chunk: AIMessageChunk) -> str:
-    """_summary_
+    """Extract all relevant information from an AIMessageChunk as a string.
+
+    Captures content text, tool_calls, usage_metadata, and response_metadata.
 
     Args:
-        chunk (AIMessageChunk): _description_
+        chunk: AIMessageChunk (LangChain object or dict).
 
     Returns:
-        str: _description_
-
-    Yields:
-        Iterator[str]: _description_
+        str: All chunk information serialized into a single string.
     """
+    parts = []
+
     if isinstance(chunk, dict):
         try:
-            content = chunk["model"]["messages"][-1].content
-        except KeyError:
-            content = ""
+            messages = chunk.get("model", {}).get("messages", [])
+            msg = messages[-1] if messages else {}
+
+            # Text content
+            text = msg.get("content", "") if isinstance(msg, dict) else getattr(msg, "content", "") or ""
+            if text:
+                parts.append("\n \n" + text)
+
+            # Tool calls
+            tool_calls = msg.get("tool_calls", []) if isinstance(msg, dict) else getattr(msg, "tool_calls", []) or []
+            if tool_calls:
+                for tc in tool_calls:
+                    tc_str = f"\n🔧 *calling tool : ```{tc.get('name', 'unknown')}```: \n \t{json.dumps(tc.get('args', {}))}* \n"
+                    parts.append(tc_str)
+
+            # Usage metadata
+            usage = chunk.get("usage_metadata")
+            if usage:
+                parts.append(f"usage: {json.dumps(usage)}")
+
+            # Response metadata
+            resp_meta = chunk.get("response_metadata")
+            if resp_meta:
+                parts.append(f"response_metadata: {json.dumps(resp_meta)}")
+
+            # Tool outputs
+            tool_outputs = chunk.get("tools")
+            
+            if tool_outputs:
+                tool_outputs = tool_outputs['messages']
+                for tool_out in tool_outputs:
+                    if tool_out.name == 'read_file':
+                        out_str = f"\t*📄 File read*\n"
+                    else:
+                        out_str = f"\t*📤 tool output: {json.dumps(tool_out.content)}*\n"
+                    parts.append(out_str)
+
+        except (KeyError, IndexError, AttributeError):
+            pass
     else:
-        content = getattr(chunk, "content", "")
+        # Text content
+        text = getattr(chunk, "content", "") or ""
+        if text:
+            parts.append(text)
 
-    return content
+        # Tool calls
+        tool_calls = getattr(chunk, "tool_calls", []) or []
+        if tool_calls:
+            for tc in tool_calls:
+                tc_str = f"🔧 calling tool {tc.get('name', 'unknown')}: {json.dumps(tc.get('args', {}))} \n"
+                parts.append(tc_str)
 
+        # Usage metadata
+        usage = getattr(chunk, "usage_metadata", None)
+        if usage:
+            parts.append(f"usage: {json.dumps(usage)}")
+
+        # Response metadata
+        resp_meta = getattr(chunk, "response_metadata", None)
+        if resp_meta:
+            parts.append(f"response_metadata: {json.dumps(resp_meta)}")
+
+        # Tool outputs
+        tool_outputs = getattr(chunk, "tools", None) or []
+        if tool_outputs:
+            for tool_out in tool_outputs:
+                out_str = f"📤 tool output: {json.dumps(tool_out)}"
+                parts.append(out_str)
+
+    return "\n".join(parts)
 
 def get_chunkid(chunk: AIMessageChunk) -> str:
     """_summary_
@@ -73,3 +136,5 @@ def get_chunkid(chunk: AIMessageChunk) -> str:
     else:
         chunk_id = getattr(chunk, "id", str(uuid4()))
     return chunk_id
+
+

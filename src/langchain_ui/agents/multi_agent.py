@@ -9,13 +9,14 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableGenerator
 from langchain_surf import ChatWillma
 
-from langchain_ui.agents.agent_utils import format_data, get_chunkid, get_content
+from langchain_ui.agents.agent_utils import (
+    format_data, get_chunkid, get_content )
 from langchain_ui.agents.default_agent_instruction import default_instructions
 
 logger = logging.getLogger(__name__)
 
 
-def create_willma_agent(
+def create_willma_multi_agent(
     api_key: str,
     model: str = "default-text-large",
     temperature: float = 0.1,
@@ -25,6 +26,8 @@ def create_willma_agent(
     instructions: str | None = None,
     backend: Any | None = None,
     skills: list[str] | None = None,
+    name: str | None = None,
+    subagents: list | None = None
 ) -> Any:
     """Create and return a Willma agent configured for OpenAI-compatible SSE streaming.
 
@@ -47,7 +50,7 @@ def create_willma_agent(
         instructions = default_instructions
 
     @RunnableGenerator
-    def stream_openai_response(chunks: Iterable[AIMessageChunk]) -> Iterable[bytes]:
+    def stream_openai_response(chunks) -> Iterable[bytes]:
         """Convert DeepAgents (or plain AIMessageChunk) output into OpenAI‑compatible SSE.
 
         DeepAgents may emit either ``AIMessageChunk`` objects or plain ``dict``
@@ -79,7 +82,9 @@ def create_willma_agent(
         tools=tools,
         system_prompt=instructions,
         backend=backend,
-        skills=skills
+        skills=skills,
+        name=name,
+        subagents=subagents
     )
 
     return (prompt | agent | stream_openai_response)
