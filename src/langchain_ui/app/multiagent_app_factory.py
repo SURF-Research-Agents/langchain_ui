@@ -54,7 +54,7 @@ def create_app(agent, model_name):
                 stream = agent.stream_events(
                     formated_question,
                     version='v3',
-                    config={"callbacks": [langfuse_handler]}
+                    config={"callbacks": [langfuse_handler], "configurable": {"thread_id": "1"}}
                 )
 
                 for name, item in stream.interleave("messages", "subagents"):
